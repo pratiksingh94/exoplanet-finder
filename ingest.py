@@ -1,0 +1,32 @@
+import json
+import argparse
+import numpy as np
+from lightkurve import search_lightcurve
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--star", type=str, required=True)
+parser.add_argument("--output", type=str, required=True)
+
+args = parser.parse_args()
+
+
+star = args.star
+lc = search_lightcurve(star, mission="Kepler", cadence="long").download_all().stitch()
+
+normalised = lc.remove_nans().normalize()
+
+output = {
+    "star": star,
+    "time": normalised.time.value.tolist(),
+    "flux": normalised.flux.value.tolist()
+}
+
+json_output = json.dumps(output)
+
+if args.output == "json":
+    print(json_output)
+else:
+    with open(args.output, "w") as f:
+        f.write(json_output)
+    print(f"got {len(normalised.time)} values")
