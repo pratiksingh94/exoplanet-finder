@@ -1,4 +1,4 @@
-# this file is just testing and rough work, i am going to commit this just as a proof of work and to save my efforts cuz i put too much time into this 😭
+# this file is just testing and rough work
 # the real script for these things will be analysis.py
 
 from matplotlib import pyplot as plt
@@ -21,7 +21,7 @@ flux_values = np.array(data["flux"])
 # plt.savefig("folded.png", dpi=200, bbox_inches="tight")
 
 
-# def bls_search(time, flux, period_min, period_max, n_period=2000, duration=0.03, n_phase=20):
+# def bls_search(time, flux, period_min, period_max, n_period=2000, duration=0.01, n_phase=20):
 #     periods = np.linspace(period_min, period_max, n_period)
 #     best_score = -np.inf
 #     best_period = None
@@ -48,7 +48,7 @@ flux_values = np.array(data["flux"])
     
 #     return best_period, best_phase_start, best_score
 
-def bls_search_vectorized(time, flux, period_min, period_max, n_period=2000, duration=0.03, n_phase=20):
+def bls_search_vectorized(time, flux, period_min, period_max, n_period=2000, duration=0.01, n_phase=20):
     periods = np.linspace(period_min, period_max, n_period) # (P,)
     phase_starts = np.linspace(0, 1 - duration, n_phase) # (S,)
 
@@ -85,10 +85,10 @@ def bls_search_vectorized(time, flux, period_min, period_max, n_period=2000, dur
 
 
 
-def bls_search_two_pass(time, flux, period_min, period_max, duration=0.03):
+def bls_search_two_pass(time, flux, period_min, period_max, duration=0.01):
     coarse_period, _, _ = bls_search_vectorized(time, flux, period_min, period_max, n_period=2000, n_phase=10)
 
-    zoom = max(0.05 * coarse_period, 0.1)
+    zoom = max(0.01 * coarse_period, 0.1)
     fine_min = max(period_min, coarse_period - zoom)
     fine_max = min(period_max, coarse_period + zoom)
 
@@ -97,7 +97,7 @@ def bls_search_two_pass(time, flux, period_min, period_max, duration=0.03):
     return fine_period, fine_phase, fine_score
 
 
-def check_aliases(time, flux, candidate_period, duration=0.03):
+def check_aliases(time, flux, candidate_period, duration=0.01):
     # candidates = [
     #     candidate_period,
     #     candidate_period * 2,
@@ -124,4 +124,19 @@ period, phase, score = bls_search_two_pass(time_values, flux_values, 1.0, 356.0)
 aliases = check_aliases(time_values,flux_values, period)
 final_period, final_score = aliases[0]
 
-print("final period:", final_period, "final score", final_score)
+# print("final period:", final_period, "final score", final_score)
+
+
+
+
+def refine_duration(time, flux, period, duration_range, n_phase=20):
+    best = (-np.inf, None, None)
+    for duration in duration_range:
+        _, phase_start, score = bls_search_vectorized(time, flux, period*0.999, period*1.001, n_period=3, duration=duration, n_phase=n_phase)
+        if score > best[0]:
+            best = (score, duration, phase_start)
+    return best
+
+
+duration_range = np.linspace(0.01, 0.08, 30)
+print(refine_duration(time_values, flux_values, final_period, duration_range))
