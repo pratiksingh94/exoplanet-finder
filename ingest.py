@@ -16,7 +16,17 @@ lc = search_lightcurve(star, mission="Kepler", cadence="long").download_all().st
 
 normalised = lc.remove_nans().normalize()
 
+# for k, v in lc.meta.items():
+#     print(k, "=", v)
+
+metadata = {
+    "radius": lc.meta.get("RADIUS"),
+    "temperature": lc.meta.get("TEFF"),
+    "gravity": lc.meta.get("LOGG"),
+}
+
 output = {
+    "meta": metadata,
     "star": star,
     "time": normalised.time.value.tolist(),
     "flux": normalised.flux.value.tolist()

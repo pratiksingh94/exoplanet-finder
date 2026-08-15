@@ -60,6 +60,7 @@ detrended_flux = filtered_flux_values / trend
 # plt.close()
 
 output = {
+    "metadata": data["meta"],
     "star": data["star"],
     "time": filtered_time_values.tolist(),
     "flux": detrended_flux.tolist(),
