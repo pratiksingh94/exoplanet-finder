@@ -17,7 +17,7 @@ with open(args.input, "r") as f:
 # removing outliers
 flux_values = np.array(data["flux"])
 time_values = np.array(data["time"])
-n = 3
+n = 5
 
 z_scores = np.abs((flux_values - np.mean(flux_values)) / np.std(flux_values))
 mask = z_scores <= n
@@ -51,6 +51,9 @@ def rolling_median(flux, window):
 trend = rolling_median(filtered_flux_values, args.window)
 detrended_flux = filtered_flux_values / trend
 
+raw_trend = rolling_median(flux_values, args.window)
+only_detrended_flux = flux_values / raw_trend
+
 # plt.scatter(filtered_time_values, detrended_flux, s=1)
 # plt.xlabel("Time")
 # plt.ylabel("Flux")
@@ -64,6 +67,8 @@ output = {
     "star": data["star"],
     "time": filtered_time_values.tolist(),
     "flux": detrended_flux.tolist(),
+    "only_detrended_time": time_values.tolist(),
+    "only_detrended_flux": only_detrended_flux.tolist(),
     "window": args.window
 }
 json_output = json.dumps(output)
