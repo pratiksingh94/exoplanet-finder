@@ -7,12 +7,13 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--star", type=str, required=True)
 parser.add_argument("--output", type=str, required=True)
+parser.add_argument("--mission", type=str, default="Kepler", choices=["Kepler", "K2", "TESS"])
 
 args = parser.parse_args()
 
 
 star = args.star
-lc = search_lightcurve(star, mission="Kepler", cadence="long").download_all().stitch()
+lc = search_lightcurve(star, mission=args.mission, cadence="long").download_all().stitch()
 
 normalised = lc.remove_nans().normalize()
 
