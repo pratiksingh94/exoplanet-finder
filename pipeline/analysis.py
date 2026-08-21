@@ -109,6 +109,22 @@ def compute_core_depth(time, flux, period, phase_start, duration, core_fraction=
     return core_depth
 
 
+def bin_folded_curve(phase, flux, n_bins=500):
+    bin_edges = np.linspace(0, 1, n_bins + 1)
+    bin_idx = np.digitize(phase, bin_edges) -1
+    bin_idx = np.clip(bin_idx, 0, n_bins - 1)
+
+    binned_phase = []
+    binned_flux = []
+    for i in range(n_bins):
+        mask = bin_idx == i
+        if np.sum(mask) > 0:
+            binned_phase.append(float(np.mean(phase[mask])))
+            binned_flux.append(float(np.mean(flux[mask])))
+
+    return binned_phase, binned_flux
+
+
 period, phase, score = bls_search_two_pass(time_values, flux_values, args.period_min, args.period_max)
 aliases = check_aliases(time_values, flux_values, period)
 
@@ -130,6 +146,10 @@ else:
     planet_radius_solar = None
 
 
+folded_phase = (only_detrended_time % best_period) / best_period
+binned_phase, binned_flux = bin_folded_curve(folded_phase, only_detrended_flux)
+
+
 output = {
     "star": data["star"],
     "metadata": data["metadata"],
@@ -140,8 +160,8 @@ output = {
     "planet_radius_solar": planet_radius_solar,
     "planet_radius_earth": planet_radius_earth,
     "folded": {
-        "time": time_values.tolist(),
-        "flux": flux_values.tolist()
+        "time": binned_phase,
+        "flux": binned_flux
     }
 }
 
