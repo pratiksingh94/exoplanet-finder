@@ -25,6 +25,8 @@ type AnalysisResult = {
   planet_radius_earth: number | null;
   planet_radius_sun: number | null;
   score: number;
+  snr_score: number;
+  confidence: string;
   folded: { time: number[], flux: number[] };
 }
 
@@ -63,6 +65,7 @@ export default function Home() {
       if(!res.ok) throw new Error(data.error || "Analysis failed");
 
       setResult(data)
+      console.log(data)
     } catch (err:any) {
       setError(err.message ?? "Something went wrong :(")
     } finally {
@@ -131,7 +134,7 @@ export default function Home() {
             </span>
 
             {/* TODO: ADD THIS  */}
-            <span className="rounded-lg px-2 py-0.5 text-xs bg-success/30 text-success">STRONG SIGNAL</span>
+            <span className="rounded-lg px-2 py-0.5 text-xs bg-success/30 text-success">{result.confidence.toUpperCase()} SIGNAL</span>
           </div>
 
 
