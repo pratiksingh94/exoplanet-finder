@@ -161,7 +161,7 @@ print("n_expected:", n_expected)
 
 if n_expected < 5:
     confidence = "weak"
-    print("WHY IS IT STILL WRONG")
+    # print("WHY IS IT STILL WRONG")
 elif coverage_ratio < 0.3:
     confidence = "weak"
 else:
@@ -203,6 +203,9 @@ output = {
     "planet_radius_solar": planet_radius_solar,
     "planet_radius_earth": planet_radius_earth,
     "snr_score": snr_score,
+    "n_covered": n_covered,
+    "n_expected": n_expected,
+    "depth": depth,
     "confidence": confidence,
     "folded": {
         "time": binned_phase,

@@ -1,10 +1,12 @@
 "use client"
 
 import FoldedChart from "@/components/FoldedChart"
+import ResultCard from "@/components/ResultCard"
+import { AnalysisResult } from "@/types"
 import { useState } from "react"
 
 
-const KNOWN_STARS = ["KIC 8191672", "KIC 6922244"]
+const KNOWN_STARS = ["KIC 8191672", "KIC 6922244", "KIC 8462852"]
 const LOADING_STATES = [
   "Fetching light curve data...",
   "Removing noise...",
@@ -12,23 +14,6 @@ const LOADING_STATES = [
 ]
 
 
-type AnalysisResult = {
-  metadata: {
-    radius: number;
-    temperature: number;
-    gravity: number;
-  }
-  star: string;
-  period_days: number;
-  transit_duration_hours: number;
-  radius_ratio: number;
-  planet_radius_earth: number | null;
-  planet_radius_sun: number | null;
-  score: number;
-  snr_score: number;
-  confidence: string;
-  folded: { time: number[], flux: number[] };
-}
 
 
 export default function Home() {
@@ -127,45 +112,37 @@ export default function Home() {
 
 
       {result && (
-        <div className="rounded-xl border border-border bg-secondary p-4">
-          <div className="mb-3 flex items-baseline justify-between">
-            <span className="text-[15px] font-medium">
-              {result.star}
-            </span>
+        // <div className="rounded-xl border border-border bg-secondary p-4">
+        //   <div className="mb-3 flex items-baseline justify-between">
+        //     <span className="text-[15px] font-medium">
+        //       {result.star}
+        //     </span>
 
-            {/* TODO: ADD THIS  */}
-            <span className="rounded-lg px-2 py-0.5 text-xs bg-success/30 text-success">{result.confidence.toUpperCase()} SIGNAL</span>
-          </div>
+        //     {/* TODO: ADD THIS  */}
+        //     <span className="rounded-lg px-2 py-0.5 text-xs bg-success/30 text-success">{result.confidence.toUpperCase()} SIGNAL</span>
+        //   </div>
 
 
-          <FoldedChart time={result.folded.time} flux={result.folded.flux}/>
+        //   <FoldedChart time={result.folded.time} flux={result.folded.flux}/>
 
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <Metric label="Period" value={`${result.period_days.toFixed(2)} d`}/>
-            <Metric label="Duration" value={`${result.transit_duration_hours.toFixed(1)} h`}/>
-            <Metric label="Radius" value={result.planet_radius_earth != null ? `${result.planet_radius_earth.toFixed(1)}  R⊕` : `ratio ${result.radius_ratio.toFixed(3)}`}/>
-            <Metric label="Teff" value={`${result.metadata.temperature} K`}/>
-            <Metric label="Log g" value={`${result.metadata.gravity}`}/>
-            <Metric label="R★" value={`${result.metadata.radius} R☉`}/>
-            {/* <div className="flex gap-4 mt-3 text-xl text-secondary-foreground">
-              <span>Teff {result.metadata.temperature} K</span>
-              <span>log g {result.metadata.gravity}</span>
-              <span>R★ {result.metadata.radius} R☉</span>
-            </div> */}
-          </div>
+        //   <div className="mt-4 grid grid-cols-3 gap-3">
+        //     <Metric label="Period" value={`${result.period_days.toFixed(2)} d`}/>
+        //     <Metric label="Duration" value={`${result.transit_duration_hours.toFixed(1)} h`}/>
+        //     <Metric label="Radius" value={result.planet_radius_earth != null ? `${result.planet_radius_earth.toFixed(1)}  R⊕` : `ratio ${result.radius_ratio.toFixed(3)}`}/>
+        //     <Metric label="Teff" value={`${result.metadata.temperature} K`}/>
+        //     <Metric label="Log g" value={`${result.metadata.gravity}`}/>
+        //     <Metric label="R★" value={`${result.metadata.radius} R☉`}/>
+        //     {/* <div className="flex gap-4 mt-3 text-xl text-secondary-foreground">
+        //       <span>Teff {result.metadata.temperature} K</span>
+        //       <span>log g {result.metadata.gravity}</span>
+        //       <span>R★ {result.metadata.radius} R☉</span>
+        //     </div> */}
+        //   </div>
 
-        </div>
+        // </div>
+
+        <ResultCard result={result}/>
       )}
     </div>
   );
-}
-
-
-function Metric({ label, value }: { label: string, value: string }) {
-  return (
-    <div className="bg-secondary rounded-lg p-3">
-      <p className="text-[13px] text-secondary-foreground m-0 mb-1">{label}</p>
-      <p className="m-0 text-xl font-medium">{value}</p>
-    </div>
-  )
 }
