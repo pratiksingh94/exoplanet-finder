@@ -18,6 +18,11 @@ const LOADING_STATES = [
 
 export default function Home() {
   const [star, setStar] = useState("")
+  const [mission, setMission] = useState("Kepler")
+  const [periodMin, setPeriodMin] = useState("1.0")
+  const [periodMax, setPeriodMax] = useState("365.0")
+  const [showAdvanced, setShowAdvanced] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -26,6 +31,11 @@ export default function Home() {
   const runSearch = async (targetStar: string) => {
     if(!targetStar.trim()) {
       setError("Enter star ID to search")
+      return
+    }
+
+    if(periodMin >= periodMax) {
+      setError("Period min must be less than period max")
       return
     }
 
@@ -43,7 +53,7 @@ export default function Home() {
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ star: targetStar })
+        body: JSON.stringify({ star: targetStar, mission, periodMin: parseFloat(periodMin), periodMax: parseFloat(periodMax) })
       })
 
       const data = await res.json()
@@ -93,6 +103,48 @@ export default function Home() {
           >{s}</button>
         ))}
       </div>
+
+      <button onClick={() => setShowAdvanced(v => !v)} className="mb-3 cursor-pointer">
+        {showAdvanced ? "Hide" : "Show"} advanced options
+      </button>
+
+      {showAdvanced && (
+        <div className="grid grid-cols-3 gap-2 mb-4 p-3 rounded-md">
+          <label>Mission
+            <select value={mission} onChange={(e) => setMission(e.target.value)} className="mt-1 w-full rounded border border-border bg-transparent px-2 py-1 text-sm">
+              <option value="Kepler">Kepler</option>
+              <option value="K2">K2</option>
+              <option value="TESS">TESS</option>
+            </select>
+          </label>
+
+          <label>Period min (days)
+            <input
+            type="number"
+            step="0.1"
+            value={periodMin}
+            onChange={e => setPeriodMin((e.target.value))}
+            className="mt-1 rounded w-full border border-border bg-transparent px-2 py-1 text-sm"
+            />
+          </label>
+
+          <label>Period max (days)
+            <input
+            type="number"
+            step="0.1"
+            value={periodMax}
+            onChange={e => setPeriodMax((e.target.value))}
+            className="mt-1 rounded w-full border border-border bg-transparent px-2 py-1 text-sm"
+            />
+          </label>
+
+          {mission == "TESS" && (
+            <p className="col-span-3 text-[11px]">
+              TESS sectors are ~27 days each, set period max well below your data's actual baseline or results can be bullshit.
+            </p>
+          )}
+        </div>
+      )}
 
 
       {error && (
