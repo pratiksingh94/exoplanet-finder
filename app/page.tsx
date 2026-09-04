@@ -34,7 +34,12 @@ export default function Home() {
       return
     }
 
-    if(periodMin >= periodMax) {
+    if (mission === "K2" || mission === "TESS") {
+      setError(`${mission} search is disabled, see the note under advanced options`)
+      return
+    }
+
+    if(Number(periodMin) >= Number(periodMax)) {
       setError("Period min must be less than period max")
       return
     }
@@ -113,8 +118,8 @@ export default function Home() {
           <label>Mission
             <select value={mission} onChange={(e) => setMission(e.target.value)} className="mt-1 w-full rounded border border-border bg-transparent px-2 py-1 text-sm">
               <option value="Kepler">Kepler</option>
-              <option value="K2">K2</option>
-              <option value="TESS">TESS</option>
+              <option value="K2">K2 (unsupported)</option>
+              <option value="TESS">TESS (unsupported)</option>
             </select>
           </label>
 
@@ -139,8 +144,14 @@ export default function Home() {
           </label>
 
           {mission == "TESS" && (
-            <p className="col-span-3 text-[11px]">
-              TESS sectors are ~27 days each, set period max well below your data's actual baseline or results can be bullshit.
+            <p className="col-span-3 text-sm text-red-600">
+              i am so sorry, i cannot add TESS support for now these stars need special kind of data clean up and many more things that i need to figure out. T__T
+            </p>
+          )}
+
+          {mission == "K2" && (
+            <p className="col-span-3 text-sm text-red-600">
+              K2 data has a strong 6 hours instrumental noise from periodic thruster firings, which my detrending cant fully remove. This will make the analysis give wrong values so K2 search is disabled for now.
             </p>
           )}
         </div>

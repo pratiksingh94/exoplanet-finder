@@ -16,8 +16,37 @@ with open(args.input, "r") as f:
 time_values = np.array(data["time"])
 flux_values = np.array(data["flux"])
 
+
+# print(len(time_values))
+
 only_detrended_time = np.array(data["only_detrended_time"])
 only_detrended_flux = np.array(data["only_detrended_flux"])
+
+
+# def bin_for_search(time, flux, target_bin_mins=30):
+#     median_cadence_days = np.median(np.diff(np.sort(time)))
+#     median_cadence_mins = median_cadence_days * 24 * 60
+
+#     if median_cadence_mins >= target_bin_mins:
+#         return time, flux
+    
+#     bin_size_days = target_bin_mins / (60*24)
+#     n_bins = int((time.max() - time.min()) / bin_size_days)
+    
+#     bin_edges = np.linspace(time.min(), time.max(), n_bins + 1)
+#     bin_idx = np.digitize(time, bin_edges) - 1
+#     bin_idx = np.clip(bin_idx, 0, n_bins - 1)
+
+#     binned_time = []
+#     binned_flux = []
+#     for i in range(n_bins):
+#         mask = bin_idx ==i
+#         if np.sum(mask) > 0:
+#             binned_time.append(np.mean(time[mask]))
+#             binned_flux.append(np.mean(flux[mask]))
+
+#     return np.array(binned_time), np.array(binned_flux)
+
 
 def bls_search_vectorized(time, flux, period_min, period_max, n_period=2000, duration=0.04, n_phase=20):
     periods = np.linspace(period_min, period_max, n_period) # (P,)
@@ -155,10 +184,6 @@ best_score, best_period, best_duration, best_phase_start, _, snr_score = pick_be
 
 coverage_ratio, n_covered, n_expected = compute_coverage_ratio(time_values, best_period, best_phase_start, best_duration)
 
-print("coverage_ratio:", coverage_ratio)
-print("n_covered:", n_covered)
-print("n_expected:", n_expected)
-
 if n_expected < 5:
     confidence = "weak"
     # print("WHY IS IT STILL WRONG")
@@ -176,6 +201,7 @@ else:
 
 depth = compute_core_depth(only_detrended_time, only_detrended_flux, best_period, best_phase_start, best_duration)
 
+# print(len(time_values), len(only_detrended_time), len(search_time))
 transit_duration_hours = best_period * best_duration * 24
 radius_ratio = np.sqrt(depth)
 

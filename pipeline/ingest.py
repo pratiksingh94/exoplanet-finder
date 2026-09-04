@@ -13,7 +13,14 @@ args = parser.parse_args()
 
 
 star = args.star
-lc = search_lightcurve(star, mission=args.mission, cadence="long").download_all().stitch()
+
+author_map = {
+    "Kepler": "Kepler",
+    "K2": "K2",
+    "TESS": "SPOC"
+}
+
+lc = search_lightcurve(star, mission=args.mission, author=author_map.get(args.mission)).download_all().stitch()
 
 normalised = lc.remove_nans().normalize()
 
