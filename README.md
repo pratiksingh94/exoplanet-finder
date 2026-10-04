@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Exoplanet Finder
 
-## Getting Started
+Find a periodic transit signal in a star (possible exoplanet) :3 
 
-First, run the development server:
+Enter id like `KIC 8191672` and the app gets the Kepler light curve data from MAST, detrends it, runs a Box Least Squares search, and shows the folded transit with an estimated planet radius.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## How it works
+
+```
+-> POST /api/search { star, mission, periodMin, periodMax }
+    -> pipeline/ingest.py    (lightkurve: download + stitch + normalize)
+    -> pipeline/detrend.py   (5-sigma cut + rolling-median window 50)
+    -> pipeline/analysis.py  (custom vectorized BLS + alias + duration refine)
+  <- AnalysisResult JSON
+-> yo browser
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Pipeline stages
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Ingest (`pipeline/ingest.py`)**: `lightkurve.search_lightcurve(star, mission, author)`, saves `time`, `flux`, `meta {RADIUS, TEFF, LOGG}`.
+2. **Detrend (`pipeline/detrend.py`)**: removes `|z| > 5` outliers, divides by rolling median (`window=50`). Keeps both the cleaned series (for search) and the outlier-inclusive detrended series (for depth/fold display).
+3. **Analysis (`pipeline/analysis.py`)**: custom NumPy BLS T_T:
+   - two-pass period grid (coarse 2000 + fine zoom around best),
+   - alias check (`P/n`, `P*2`, `P*3`),
+   - duration grid `0.01-0.08` in phase (30 steps),
+   - score `depth * sqrt(n_in)`, SNR `depth / (noise / sqrt(n_in))`,
+   - coverage ratio (unique transit cycles / expected cycles),
+   - confidence: `weak` if `n_expected < 5` or `coverage < 0.3`, else `strong` (SNR >= 7), `moderate` (SNR >= 4), else `weak`,
+   - radius `sqrt(depth) * R_star * 109.2 = R_earth`, 500-bin folded curve (for display in chartt too).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Run locally
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm install
+# python env for the pipeline (any venv path works locally, the API defaults to pipeline/venv/bin/python or $PYTHON_BIN)
+python3 -m venv pipeline/venv
+pipeline/venv/bin/pip install -r pipeline/requirements.txt
+pnpm dev   # http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Not yet supported / roadmap
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **TESS**: disabled in the UI. TESS light curves need different systematics treatment (shorter baseline, scattered light, CBV/biweight detrending via e.g. `wotan`). Current rolling-median `window=50` was tuned for Kepler
+- **K2**: disabled in the UI. K2 has ~6h thruster-firing stuff the current detrending cannot remove, producing fake periods
+- **Single-planet only**: reports the single strongest periodic signal. Multi-planet requires iterative masking + re-search, too lazy rn
+- **No vetting yet**: no odd-even depth test, secondary-eclipse veto, or false-alarm probability. Eclipsing binaries and stellar rotation can mimic planets at `weak/moderate` confidence, again thats for future
