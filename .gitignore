@@ -2,7 +2,8 @@
 
 
 venv
-*.json
+/pipeline/cache/*.json
+/pipeline/*.json
 *.png
 
 
