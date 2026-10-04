@@ -3,6 +3,7 @@
 import FoldedChart from "@/components/FoldedChart"
 import ResultCard from "@/components/ResultCard"
 import { AnalysisResult } from "@/types"
+import { isValidStarId, STAR_ID_HINT } from "@/lib/utils"
 import { useState } from "react"
 
 
@@ -34,12 +35,29 @@ export default function Home() {
       return
     }
 
+    if (!isValidStarId(targetStar)) {
+      setError(STAR_ID_HINT)
+      return
+    }
+
     if (mission === "K2" || mission === "TESS") {
       setError(`${mission} search is disabled, see the note under advanced options`)
       return
     }
 
-    if(Number(periodMin) >= Number(periodMax)) {
+    const pMin = Number(periodMin)
+    const pMax = Number(periodMax)
+    if (!Number.isFinite(pMin) || !Number.isFinite(pMax)) {
+      setError("Period min and max must be numbers")
+      return
+    }
+
+    if (pMin < 0.5 || pMax > 1000) {
+      setError("Period must be between 0.5 and 1000 days")
+      return
+    }
+
+    if(pMin >= pMax) {
       setError("Period min must be less than period max")
       return
     }

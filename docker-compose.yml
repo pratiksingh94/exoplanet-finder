@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    image: exoplanet-finder:latest
+    container_name: exoplanet-finder
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3100:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+    volumes:
+      - ./pipeline/cache:/app/pipeline/cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

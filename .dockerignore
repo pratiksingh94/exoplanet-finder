@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.gitignore
+pipeline/venv
+pipeline/cache
+pipeline/*.json
+pipeline/*.png
+pipeline/__pycache__
+**/__pycache__
+*.pyc
+out
+coverage
+.vercel
+.env*
+npm-debug.log*
+.DS_Store

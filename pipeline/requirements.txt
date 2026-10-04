@@ -1,0 +1,5 @@
+lightkurve==2.6.0
+numpy==2.5.2
+scipy==1.18.0
+matplotlib==3.11.1
+astropy==8.0.1
